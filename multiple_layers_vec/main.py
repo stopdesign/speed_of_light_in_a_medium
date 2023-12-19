@@ -11,7 +11,7 @@ charge_electron = 1 / number_of_electrons_wide ** 2  # this is to ensure the amo
 TIME_END = 100
 TIME_STEPS = 100
 DT = TIME_END / TIME_STEPS
-start_y = 25 # this is where we will start plotting y from
+start_y = 100 # this is where we will start plotting y from
 number_of_evaluation_points = 100  # make this larger for more resolution in the y axis
 c = 5  # speed of light
 hookes_constant = 0.1
@@ -161,9 +161,8 @@ if __name__ == '__main__':
         electron_y_positions[np.newaxis, :],
     )  # axes: time X y
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.view_init(elev=0, azim=0)
+    fig = plt.figure(figsize = (15, 5))
+    ax = fig.add_subplot(111)  #, projection='3d')
 
     plt.ion()
 
@@ -174,9 +173,9 @@ if __name__ == '__main__':
         # We are going to calculate the field along the line x = 0, z = 0 and plot it
         ef_due_to_electrons = electrons_electric_field(step, y_f)
         ef_combined = ef_original_on_evaluation_points[step,:] + ef_due_to_electrons
-        ax.scatter(0, y_f, ef_combined, color='m', alpha=1, s=1)
-        ax.scatter(0, y_f, ef_original_on_evaluation_points[step, :], color='r', alpha=1, s=1)
-        ax.scatter(0, y_f, ef_due_to_electrons, color='b', alpha=1, s=1)
+        ax.scatter(y_f, ef_combined, color='m', alpha=1, s=1)
+        ax.scatter(y_f, ef_original_on_evaluation_points[step, :], color='r', alpha=1, s=1)
+        ax.scatter(y_f, ef_due_to_electrons, color='b', alpha=1, s=1)
 
         # Now we update the z position and velocity of all our electrons.
         # To simplify, we will assume that each layer experiences the same electric field: the ef at (0, layer_y, 0)
@@ -187,24 +186,29 @@ if __name__ == '__main__':
         z_middle_of_layer += z_velocity_middle_of_layer * DT + 0.5 * accel_history[:, step] * DT ** 2
         z_velocity_middle_of_layer += accel_history[:, step] * DT
 
-        scatter_shape = (len(electron_x_positions), len(electron_y_positions))
-        ax.scatter(
-            np.broadcast_to(electron_x_positions[:, np.newaxis], scatter_shape),
-            np.broadcast_to(electron_y_positions[np.newaxis,:], scatter_shape),
-            z_middle_of_layer[np.newaxis,:] + electron_z_positions[:, np.newaxis],
-            c='b',
-            alpha=0.5,
-        )
+        # scatter_shape = (len(electron_x_positions), len(electron_y_positions))
+        # ax.scatter(
+        #     np.broadcast_to(electron_x_positions[:, np.newaxis], scatter_shape),
+        #     np.broadcast_to(electron_y_positions[np.newaxis,:], scatter_shape),
+        #     z_middle_of_layer[np.newaxis,:] + electron_z_positions[:, np.newaxis],
+        #     c='b',
+        #     alpha=0.5,
+        # )
 
-        ax.set_xlim([-material_x_z_width, material_x_z_width])
-        ax.set_ylim([-material_y_width, start_y])
-        ax.set_zlim([-material_x_z_width, material_x_z_width])
+        ax.set_ylim([-material_x_z_width, material_x_z_width])
+        ax.set_xlim([start_y, -material_y_width])
+        # ax.set_zlim([-material_x_z_width, material_x_z_width])
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
+        # ax.set_zlabel('Z')
+
+        ax.set_title(f"Step: {step}")
 
         plt.draw()
         plt.pause(0.01)
 
         if not plt.get_fignums():
             break
+
+    while plt.get_fignums():
+        plt.pause(0.1)
